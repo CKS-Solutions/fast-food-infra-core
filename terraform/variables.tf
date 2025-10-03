@@ -4,62 +4,51 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "name_prefix" {
-  description = "Prefixo para nomes dos recursos"
+variable "cluster_name" {
+  description = "Nome do cluster EKS"
   type        = string
-  default     = "infra"
+  default     = "fast-food-eks"
 }
 
-variable "vpc_cidr" {
-  description = "CIDR da VPC"
+variable "vpc_name" {
+  description = "Tag Name da VPC a ser usada"
   type        = string
-  default     = "10.0.0.0/16"
+  default     = "fast-food-vpc"
 }
 
-variable "azs" {
-  description = "Availability Zones para criar subnets"
-  type        = list(string)
-  default     = []
-}
-
-variable "public_subnet_cidrs" {
-  description = "Lista de CIDRs públicas (um por AZ)"
-  type        = list(string)
-  default     = []
-}
-
-variable "private_subnet_cidrs" {
-  description = "Lista de CIDRs privadas (um por AZ)"
-  type        = list(string)
-  default     = []
-}
-
-variable "eks_cluster_version" {
-  description = "Versão do EKS"
+variable "subnet_name" {
+  description = "Tag Name das subnets privadas a serem usadas (pode haver várias)"
   type        = string
-  default     = "1.28"
+  default     = "fast-food-private-subnet"
 }
 
-variable "node_group_instance_types" {
-  description = "Instance types para Node Groups (workers)"
-  type        = list(string)
-  default     = ["t4g.medium"]
+variable "node_instance_type" {
+  description = "Instance type for worker node"
+  type        = string
+  default     = "t3.micro"
 }
 
-variable "node_group_desired_capacity" {
-  description = "Desired capacity inicial"
-  type        = number
-  default     = 2
+variable "node_min" {
+  type    = number
+  default = 1
+}
+variable "node_desired" {
+  type    = number
+  default = 1
+}
+variable "node_max" {
+  type    = number
+  default = 1
 }
 
-variable "create_nat_gateway" {
-  description = "Criar NAT Gateway para subnets privadas (custa mais)"
-  type        = bool
-  default     = true
+variable "rds_security_group_id" {
+  description = "ID do security group do RDS (opcional). Se fornecido, uma regra de ingress será adicionada permitindo acesso dos workers."
+  type        = string
+  default     = ""
 }
 
+# Basic tags
 variable "tags" {
-  description = "Tags adicionais"
-  type        = map(string)
-  default     = {}
+  type    = map(string)
+  default = {}
 }

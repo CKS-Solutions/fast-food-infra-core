@@ -1,27 +1,24 @@
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "20.1.0"
+  version = "21.0"
 
-  cluster_name    = "${local.name_prefix}-eks"
-  cluster_version = var.eks_cluster_version
+  name    = var.cluster_name
+  kubernetes_version = "1.33"
 
-  subnet_ids = values(aws_subnet.private)[*].id
-  vpc_id     = aws_vpc.this.id
-
-  cluster_security_group_id = aws_security_group.cluster.id
-
-  enable_irsa = true
+  vpc_id     = data.aws_vpc.selected.id
+  subnet_ids = data.aws_subnets.private.ids
 
   eks_managed_node_groups = {
     default = {
-      instance_types = var.node_group_instance_types
-      desired_size   = var.node_group_desired_capacity
-      max_size       = var.node_group_desired_capacity + 1
-      min_size       = 1
+      desired_size   = var.node_desired
+      min_size       = var.node_min
+      max_size       = var.node_max
+      instance_types = [var.node_instance_type]
+      subnet_ids     = data.aws_subnets.private.ids
     }
   }
 
   tags = merge({
-    Owner = "infra"
+    Name = var.cluster_name
   }, var.tags)
 }

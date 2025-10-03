@@ -1,16 +1,11 @@
 output "vpc_id" {
-  description = "VPC ID"
-  value       = aws_vpc.this.id
-}
-
-output "public_subnet_ids" {
-  description = "Subnets públicas (ids)"
-  value       = values(aws_subnet.public).* .id
+  description = "VPC ID encontrada"
+  value       = data.aws_vpc.selected.id
 }
 
 output "private_subnet_ids" {
-  description = "Subnets privadas (ids)"
-  value       = values(aws_subnet.private).* .id
+  description = "Private subnet IDs utilizadas"
+  value       = data.aws_subnets.private.ids
 }
 
 output "eks_cluster_name" {
@@ -19,26 +14,20 @@ output "eks_cluster_name" {
 }
 
 output "eks_cluster_endpoint" {
-  description = "Endpoint do EKS"
+  description = "EKS API endpoint"
   value       = module.eks.cluster_endpoint
 }
 
-output "eks_cluster_certificate_authority_data" {
-  description = "CA do cluster (base64)"
+output "eks_cluster_ca_data" {
+  description = "Cluster CA data (base64)"
   value       = module.eks.cluster_certificate_authority_data
 }
 
-output "eks_oidc_provider" {
-  description = "ARN do OIDC provider do EKS"
-  value       = module.eks.oidc_provider_arn
-}
-
 output "eks_node_security_group_id" {
-  description = "Security group dos nodes (workers)"
-  value       = aws_security_group.eks_nodes.id
+  description = "Security group id dos worker nodes (use para permitir acesso ao RDS)"
+  value       = module.eks.node_security_group_id
 }
 
-output "eks_cluster_security_group_id" {
-  description = "Security group do control plane"
-  value       = aws_security_group.cluster.id
+output "rds_ingress_rule_created" {
+  value = length(aws_security_group_rule.allow_rds_from_eks_nodes) > 0 ? true : false
 }

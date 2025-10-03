@@ -2,13 +2,14 @@ name: Terraform
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    environment: fast-food-infra-core-env
 
     permissions:
       contents: read
@@ -22,26 +23,31 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v3
 
-      - name: Configure AWS credentials (OIDC or role)
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform Init
         working-directory: terraform
-        run: terraform init -input=false
+        run: terraform init -input=false -backend-config="envs/prod/backend.hcl"
 
       - name: Terraform Validate
         working-directory: terraform
         run: terraform validate
 
-      - name: Terraform Plan (PR)
+      - name: Terraform Plan
         if: github.event_name == 'pull_request'
         working-directory: terraform
-        run: terraform plan -input=false -out=tfplan
+        run: |
+          terraform plan -input=false \
+            -var aws_region=${{ env.AWS_REGION }}
 
-      - name: Terraform Apply (on main)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Terraform Apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         working-directory: terraform
-        run: terraform apply -input=false -auto-approve
+        run: |
+          terraform apply -input=false -auto-approve \
+            -var aws_region=${{ env.AWS_REGION }}
