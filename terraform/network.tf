@@ -10,8 +10,8 @@ resource "aws_vpc" "main" {
 
 resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = var.public_subnet_cidr_block[count.index]
-  availability_zone       = var.public_subnet_availability_zone[count.index]
+  cidr_block              = var.public_subnet_cidr_block
+  availability_zone       = var.public_subnet_availability_zone
   map_public_ip_on_launch = true
 
   tags = {
@@ -20,6 +20,7 @@ resource "aws_subnet" "public" {
 }
 
 resource "aws_subnet" "private" {
+  count = 2
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.private_subnet_cidr_block[count.index]
   availability_zone       = var.private_subnet_availability_zone[count.index]
@@ -71,6 +72,10 @@ resource "aws_security_group" "eks_nodes" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "fast-food-eks-nodes"
   }
 }
 

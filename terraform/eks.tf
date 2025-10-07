@@ -8,7 +8,7 @@ resource "aws_eks_cluster" "main" {
   }
 
   vpc_config {
-    subnet_ids = [aws_subnet.public.id, aws_subnet.private.id]
+    subnet_ids = [aws_subnet.public.id, aws_subnet.private[0].id, aws_subnet.private[1].id]
   }
 
   depends_on = [
@@ -25,12 +25,8 @@ resource "aws_eks_node_group" "main" {
   node_group_name = "fast-food-node-group"
   cluster_name = var.eks_cluster_name
   node_role_arn = aws_iam_role.eks_node_role.arn
-  subnet_ids = [aws_subnet.private.id]
+  subnet_ids = [aws_subnet.public.id]
   instance_types = [var.eks_node_instance_type]
-
-  remote_access {
-    source_security_group_ids = [aws_security_group.eks_nodes.id]
-  }
 
   scaling_config {
     desired_size = var.eks_node_desired_size

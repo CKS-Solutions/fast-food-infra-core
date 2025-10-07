@@ -13,9 +13,14 @@ output "public_subnet_id" {
   value       = aws_subnet.public.id
 }
 
-output "private_subnet_id" {
+output "private_subnet_id_1" {
   description = "ID da subnet privada"
-  value       = aws_subnet.private.id
+  value       = aws_subnet.private[0].id
+}
+
+output "private_subnet_id_2" {
+  description = "ID da subnet privada"
+  value       = aws_subnet.private[1].id
 }
 
 output "eks_cluster_ca" {
