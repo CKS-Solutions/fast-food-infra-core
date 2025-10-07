@@ -1,98 +1,99 @@
-resource "aws_vpc" "this" {
-  cidr_block           = var.vpc_cidr
-  enable_dns_hostnames = true
+resource "aws_vpc" "main" {
+  cidr_block           = var.vpc_cidr_block
   enable_dns_support   = true
+  enable_dns_hostnames = true
 
-  tags = merge({
-    Name = "${local.name_prefix}-vpc"
-  }, var.tags)
-}
-
-resource "aws_internet_gateway" "this" {
-  vpc_id = aws_vpc.this.id
   tags = {
-    Name = "${local.name_prefix}-igw"
+    Name = var.vpc_name
   }
 }
 
 resource "aws_subnet" "public" {
-  for_each = { for idx, cidr in var.public_subnet_cidrs : idx => cidr }
-
-  vpc_id                  = aws_vpc.this.id
-  cidr_block              = each.value
-  availability_zone       = length(var.azs) > 0 ? var.azs[each.key] : null
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnet_cidr_block
+  availability_zone       = var.public_subnet_availability_zone
   map_public_ip_on_launch = true
 
-  tags = merge({
-    Name = "${local.name_prefix}-public-${each.key}"
-  }, var.tags)
+  tags = {
+    Name = "fast-food-public-subnet"
+  }
 }
 
 resource "aws_subnet" "private" {
-  for_each = { for idx, cidr in var.private_subnet_cidrs : idx => cidr }
+  count = 2
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.private_subnet_cidr_block[count.index]
+  availability_zone       = var.private_subnet_availability_zone[count.index]
+  map_public_ip_on_launch = false
 
-  vpc_id            = aws_vpc.this.id
-  cidr_block        = each.value
-  availability_zone = length(var.azs) > 0 ? var.azs[each.key] : null
+  tags = {
+    Name = "fast-food-private-subnet"
+  }
+}
 
-  tags = merge({
-    Name = "${local.name_prefix}-private-${each.key}"
-  }, var.tags)
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "fast-food-main-gateway"
+  }
 }
 
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.this.id
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = aws_vpc.main.cidr_block
+    gateway_id = "local"
+  }
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
+
   tags = {
-    Name = "${local.name_prefix}-public-rt"
+    Name = "fast-food-public-route-table"
   }
 }
 
-resource "aws_route" "public_internet_access" {
-  route_table_id         = aws_route_table.public.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.this.id
-}
-
-resource "aws_route_table_association" "public_assoc" {
-  for_each = aws_subnet.public
-  subnet_id      = each.value.id
+resource "aws_route_table_association" "public" {
+  subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.public.id
 }
 
-resource "aws_eip" "nat" {
-  count = var.create_nat_gateway ? length(aws_subnet.public) : 0
+resource "aws_security_group" "eks_nodes" {
+  name        = "fast-food-eks-nodes"
+  description = "SG dos nodes do EKS"
+  vpc_id      = aws_vpc.main.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = {
-    Name = "${local.name_prefix}-nat-eip-${count.index}"
+    Name = "fast-food-eks-nodes"
   }
 }
 
-resource "aws_nat_gateway" "nat" {
-  count = var.create_nat_gateway ? length(aws_subnet.public) : 0
+resource "aws_security_group" "rds" {
+  name        = "fast-food-rds-postgres"
+  description = "Acesso ao RDS Postgres (5432) somente de SGs autorizados"
+  vpc_id      = aws_vpc.main.id
 
-  allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = values(aws_subnet.public)[count.index].id
+  egress {
+    description = "Saida irrestrita"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
 
   tags = {
-    Name = "${local.name_prefix}-natgw-${count.index}"
+    Name = "fast-food-rds-postgres"
   }
-}
-
-resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.this.id
-  tags = {
-    Name = "${local.name_prefix}-private-rt"
-  }
-}
-
-resource "aws_route" "private_nat" {
-  count                   = var.create_nat_gateway ? length(aws_nat_gateway.nat) : 0
-  route_table_id          = aws_route_table.private.id
-  destination_cidr_block  = "0.0.0.0/0"
-  nat_gateway_id          = length(aws_nat_gateway.nat) > 0 ? element(aws_nat_gateway.nat.*.id, 0) : null
-}
-
-resource "aws_route_table_association" "private_assoc" {
-  for_each = aws_subnet.private
-  subnet_id      = each.value.id
-  route_table_id = aws_route_table.private.id
 }

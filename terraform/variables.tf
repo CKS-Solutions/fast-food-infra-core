@@ -1,65 +1,77 @@
+
 variable "aws_region" {
   description = "AWS region"
   type        = string
   default     = "us-east-1"
 }
-
-variable "name_prefix" {
-  description = "Prefixo para nomes dos recursos"
+variable "eks_cluster_name" {
+  description = "Nome do cluster EKS"
   type        = string
-  default     = "infra"
+  default     = "fast-food-eks"
 }
 
-variable "vpc_cidr" {
-  description = "CIDR da VPC"
+variable "eks_node_instance_type" {
+  description = "Tipo de instância do nó do EKS"
+  type        = string
+  default     = "t3.medium"
+}
+
+variable "vpc_cidr_block" {
+  description = "CIDR block for the VPC"
   type        = string
   default     = "10.0.0.0/16"
 }
 
-variable "azs" {
-  description = "Availability Zones para criar subnets"
-  type        = list(string)
-  default     = []
-}
-
-variable "public_subnet_cidrs" {
-  description = "Lista de CIDRs públicas (um por AZ)"
-  type        = list(string)
-  default     = []
-}
-
-variable "private_subnet_cidrs" {
-  description = "Lista de CIDRs privadas (um por AZ)"
-  type        = list(string)
-  default     = []
-}
-
-variable "eks_cluster_version" {
-  description = "Versão do EKS"
+variable "vpc_name" {
+  description = "Tag Name da VPC a ser usada"
   type        = string
-  default     = "1.28"
+  default     = "fast-food-vpc"
 }
 
-variable "node_group_instance_types" {
-  description = "Instance types para Node Groups (workers)"
-  type        = list(string)
-  default     = ["t4g.medium"]
+variable "eks_node_desired_size" {
+  description = "Número desejado de nós do EKS"
+  type        = number
+  default     = 1
 }
 
-variable "node_group_desired_capacity" {
-  description = "Desired capacity inicial"
+variable "eks_node_max_size" {
+  description = "Número máximo de nós do EKS"
   type        = number
   default     = 2
 }
 
-variable "create_nat_gateway" {
-  description = "Criar NAT Gateway para subnets privadas (custa mais)"
-  type        = bool
-  default     = true
+variable "eks_node_min_size" {
+  description = "Número mínimo de nós do EKS"
+  type        = number
+  default     = 1
 }
 
-variable "tags" {
-  description = "Tags adicionais"
-  type        = map(string)
-  default     = {}
+variable "eks_node_max_unavailable" {
+  description = "Número máximo de nós do EKS indisponíveis durante a atualização"
+  type        = number
+  default     = 1
+}
+
+variable "public_subnet_cidr_block" {
+  description = "CIDR block for the public subnets"
+  type        = string
+  default     = "10.0.1.0/24"
+}
+
+variable "public_subnet_availability_zone" {
+  description = "Availability zone for the public subnets"
+  type        = string
+  default     = "us-east-1a"
+}
+
+variable "private_subnet_cidr_block" {
+  description = "CIDR block for the private subnets"
+  type        = list(string)
+  default     = ["10.0.11.0/24", "10.0.12.0/24"]
+}
+
+variable "private_subnet_availability_zone" {
+  description = "Availability zone for the private subnets"
+  type        = list(string)
+  default     = ["us-east-1b", "us-east-1a"]
 }
