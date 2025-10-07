@@ -1,33 +1,29 @@
 output "vpc_id" {
-  description = "VPC ID encontrada"
-  value       = data.aws_vpc.selected.id
+  description = "ID da VPC criada"
+  value       = aws_vpc.main.id
 }
 
-output "private_subnet_ids" {
-  description = "Private subnet IDs utilizadas"
-  value       = data.aws_subnets.private.ids
+output "vpc_cidr_block" {
+  description = "CIDR block da VPC"
+  value       = aws_vpc.main.cidr_block
 }
 
-output "eks_cluster_name" {
-  description = "EKS cluster name"
-  value       = module.eks.cluster_id
+output "public_subnet_id" {
+  description = "ID da subnet pública"
+  value       = aws_subnet.public.id
+}
+
+output "private_subnet_id" {
+  description = "ID da subnet privada"
+  value       = aws_subnet.private.id
+}
+
+output "eks_cluster_ca" {
+  description = "CA do cluster EKS"
+  value       = aws_eks_cluster.main.certificate_authority[0].data
 }
 
 output "eks_cluster_endpoint" {
-  description = "EKS API endpoint"
-  value       = module.eks.cluster_endpoint
-}
-
-output "eks_cluster_ca_data" {
-  description = "Cluster CA data (base64)"
-  value       = module.eks.cluster_certificate_authority_data
-}
-
-output "eks_node_security_group_id" {
-  description = "Security group id dos worker nodes (use para permitir acesso ao RDS)"
-  value       = module.eks.node_security_group_id
-}
-
-output "rds_ingress_rule_created" {
-  value = length(aws_security_group_rule.allow_rds_from_eks_nodes) > 0 ? true : false
+  description = "Endpoint do cluster EKS"
+  value       = aws_eks_cluster.main.endpoint
 }

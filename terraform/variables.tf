@@ -1,13 +1,25 @@
+
 variable "aws_region" {
   description = "AWS region"
   type        = string
   default     = "us-east-1"
 }
-
-variable "cluster_name" {
+variable "eks_cluster_name" {
   description = "Nome do cluster EKS"
   type        = string
   default     = "fast-food-eks"
+}
+
+variable "eks_node_instance_type" {
+  description = "Tipo de instância do nó do EKS"
+  type        = string
+  default     = "t3.medium"
+}
+
+variable "vpc_cidr_block" {
+  description = "CIDR block for the VPC"
+  type        = string
+  default     = "10.0.0.0/16"
 }
 
 variable "vpc_name" {
@@ -16,39 +28,50 @@ variable "vpc_name" {
   default     = "fast-food-vpc"
 }
 
-variable "subnet_name" {
-  description = "Tag Name das subnets privadas a serem usadas (pode haver várias)"
-  type        = string
-  default     = "fast-food-private-subnet"
+variable "eks_node_desired_size" {
+  description = "Número desejado de nós do EKS"
+  type        = number
+  default     = 1
 }
 
-variable "node_instance_type" {
-  description = "Instance type for worker node"
-  type        = string
-  default     = "t3.micro"
+variable "eks_node_max_size" {
+  description = "Número máximo de nós do EKS"
+  type        = number
+  default     = 2
 }
 
-variable "node_min" {
-  type    = number
-  default = 1
-}
-variable "node_desired" {
-  type    = number
-  default = 1
-}
-variable "node_max" {
-  type    = number
-  default = 1
+variable "eks_node_min_size" {
+  description = "Número mínimo de nós do EKS"
+  type        = number
+  default     = 1
 }
 
-variable "rds_security_group_id" {
-  description = "ID do security group do RDS (opcional). Se fornecido, uma regra de ingress será adicionada permitindo acesso dos workers."
-  type        = string
-  default     = ""
+variable "eks_node_max_unavailable" {
+  description = "Número máximo de nós do EKS indisponíveis durante a atualização"
+  type        = number
+  default     = 1
 }
 
-# Basic tags
-variable "tags" {
-  type    = map(string)
-  default = {}
+variable "public_subnet_cidr_block" {
+  description = "CIDR block for the public subnets"
+  type        = list(string)
+  default     = ["10.0.1.0/24","10.0.2.0/24"]
+}
+
+variable "public_subnet_availability_zone" {
+  description = "Availability zone for the public subnets"
+  type        = list(string)
+  default     = ["us-east-1a","us-east-1b"]
+}
+
+variable "private_subnet_cidr_block" {
+  description = "CIDR block for the private subnets"
+  type        = list(string)
+  default     = ["10.0.11.0/24","10.0.12.0/24"]
+}
+
+variable "private_subnet_availability_zone" {
+  description = "Availability zone for the private subnets"
+  type        = list(string)
+  default     = ["us-east-1a","us-east-1b"]
 }
