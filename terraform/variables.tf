@@ -4,17 +4,6 @@ variable "aws_region" {
   type        = string
   default     = "us-east-1"
 }
-variable "eks_cluster_name" {
-  description = "Nome do cluster EKS"
-  type        = string
-  default     = "fast-food-eks"
-}
-
-variable "eks_node_instance_type" {
-  description = "Tipo de instância do nó do EKS"
-  type        = string
-  default     = "t3.medium"
-}
 
 variable "vpc_cidr_block" {
   description = "CIDR block for the VPC"
@@ -28,40 +17,16 @@ variable "vpc_name" {
   default     = "fast-food-vpc"
 }
 
-variable "eks_node_desired_size" {
-  description = "Número desejado de nós do EKS"
-  type        = number
-  default     = 1
-}
-
-variable "eks_node_max_size" {
-  description = "Número máximo de nós do EKS"
-  type        = number
-  default     = 2
-}
-
-variable "eks_node_min_size" {
-  description = "Número mínimo de nós do EKS"
-  type        = number
-  default     = 1
-}
-
-variable "eks_node_max_unavailable" {
-  description = "Número máximo de nós do EKS indisponíveis durante a atualização"
-  type        = number
-  default     = 1
-}
-
 variable "public_subnet_cidr_block" {
   description = "CIDR block for the public subnets"
-  type        = string
-  default     = "10.0.1.0/24"
+  type        = list(string)
+  default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
 variable "public_subnet_availability_zone" {
   description = "Availability zone for the public subnets"
-  type        = string
-  default     = "us-east-1a"
+  type        = list(string)
+  default     = ["us-east-1a", "us-east-1b"]
 }
 
 variable "private_subnet_cidr_block" {

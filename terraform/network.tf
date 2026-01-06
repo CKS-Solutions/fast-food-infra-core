@@ -9,9 +9,10 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "public" {
+  count = 2
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = var.public_subnet_cidr_block
-  availability_zone       = var.public_subnet_availability_zone
+  cidr_block              = var.public_subnet_cidr_block[count.index]
+  availability_zone       = var.public_subnet_availability_zone[count.index]
   map_public_ip_on_launch = true
 
   tags = {
@@ -58,30 +59,14 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.public.id
+  count           = 2
+  subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
-}
-
-resource "aws_security_group" "eks_nodes" {
-  name        = "fast-food-eks-nodes"
-  description = "SG dos nodes do EKS"
-  vpc_id      = aws_vpc.main.id
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "fast-food-eks-nodes"
-  }
 }
 
 resource "aws_security_group" "rds" {
   name        = "fast-food-rds-postgres"
-  description = "Acesso ao RDS Postgres (5432) somente de SGs autorizados"
+  description = "Acesso ao RDS Postgres (5432)"
   vpc_id      = aws_vpc.main.id
 
   egress {
